@@ -1,198 +1,237 @@
-l<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Bank Arbolii - System YA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SBiPP - Arbolia Command Center</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #e8f5e9; color: #2e7d32; display: flex; flex-direction: column; align-items: center; }
-        .bank-container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 450px; margin-top: 20px; }
-        h1 { text-align: center; border-bottom: 2px solid #4caf50; padding-bottom: 10px; }
-        input, button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
-        button { background: #4caf50; color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background: #388e3c; }
-        .offer { background: #f1f8e9; padding: 15px; margin: 10px 0; border-left: 5px solid #81c784; position: relative; }
-        .admin-offer { border-left-color: #ff9800; background: #fff3e0; }
-        .delete-btn { background: #e53935; width: auto; padding: 4px 8px; font-size: 11px; float: right; }
-        .buy-btn { background: #007bff; margin-top: 10px; }
-        .news-box { background: #fff9c4; border: 1px solid #fbc02d; padding: 10px; margin-bottom: 15px; border-radius: 5px; }
-        .hidden { display: none; }
-        hr { border: 0; border-top: 1px solid #eee; margin: 15px 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #1b5e20; color: white; text-align: center; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: #2e7d32; padding: 20px; border-radius: 15px; border: 3px solid #f9a825; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        h1 { color: #f9a825; text-shadow: 2px 2px 4px #000; margin: 10px 0; }
+        .screen { display: none; }
+        .active { display: block; }
+        input, select, textarea { width: 85%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; font-size: 16px; }
+        button { background: #f9a825; color: #1b5e20; border: none; padding: 12px 25px; font-weight: bold; border-radius: 5px; cursor: pointer; margin: 5px; transition: 0.3s; }
+        button:hover { background: #ffd54f; transform: scale(1.05); }
+        .box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; margin-top: 20px; border: 1px solid rgba(249,168,37,0.3); }
+        .item { background: #388e3c; padding: 10px; margin: 10px 0; border-radius: 8px; border-left: 5px solid #f9a825; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+        .item img { width: 50px; height: 50px; border-radius: 5px; margin-right: 10px; object-fit: cover; background: white; border: 1px solid #f9a825; }
+        .news-item { background: #fdfdfd; color: #1b1b1b; padding: 10px; margin: 10px 0; border-radius: 5px; text-align: left; border-left: 10px solid #f9a825; font-size: 14px; }
+        .admin-section { border: 2px dashed #f44336; padding: 15px; margin-top: 15px; background: rgba(244, 67, 54, 0.1); }
+        .delete-btn { background: #f44336; color: white; padding: 5px 10px; font-size: 12px; }
+        .user-row { background: #1b5e20; margin: 5px 0; padding: 8px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
 
-    <h1>🌳 Bank Arbolii</h1>
+<div class="container">
+    <h1>🌲 ARBOLIA SYSTEM 🌲</h1>
 
-    <!-- Logowanie -->
-    <div id="auth-box" class="bank-container">
-        <h3>Zaloguj się do Arbolii</h3>
-        <input type="text" id="username" placeholder="Nick (Szef: SBiPP)">
-        <input type="password" id="password" placeholder="Hasło">
-        <button onclick="login()">Otwórz Bramy Lasu</button>
+    <!-- LOGOWANIE -->
+    <div id="screen-auth" class="screen active">
+        <h3>Autoryzacja BiPP</h3>
+        <input type="text" id="login-nick" placeholder="Twoje ID">
+        <input type="password" id="login-pass" placeholder="Hasło">
+        <br>
+        <button onclick="auth()">WEJDŹ</button>
     </div>
 
-    <!-- Panel Użytkownika -->
-    <div id="user-panel" class="bank-container hidden">
-        <div id="news-section" class="news-box hidden">
-            <strong>🔔 NEWSY:</strong>
-            <ul id="news-list" style="margin: 5px 0; padding-left: 20px; font-size: 0.9em;"></ul>
-            <button onclick="clearNews()" style="padding: 2px; font-size: 10px; background: #fbc02d;">Wyczyść powiadomienia</button>
+    <!-- EKRAN GŁÓWNY -->
+    <div id="screen-main" class="screen">
+        <h2 id="welcome-msg">Witaj!</h2>
+        <h1 id="balance-display">0 YA</h1>
+
+        <!-- NEWSY -->
+        <div class="box" style="background: #1b5e20;">
+            <h3 style="color: #f9a825; margin: 0;">🗞️ GŁOS ARBOLII</h3>
+            <div id="news-container"></div>
+        </div>
+        
+        <!-- PANEL SBiPP (ADMIN) -->
+        <div id="admin-panel" class="box admin-section" style="display:none;">
+            <h3 style="color: #f44336;">🛠️ PANEL ZARZĄDZANIA SBiPP</h3>
+            
+            <input type="text" id="news-input" placeholder="Treść newsa...">
+            <button onclick="addNews()">DODAJ NEWS</button>
+            <hr color="#f44336">
+            
+            <h4 style="margin:5px;">NOWY TOWAR PAŃSTWOWY:</h4>
+            <input type="text" id="off-name" placeholder="Nazwa">
+            <input type="number" id="off-price" placeholder="Cena">
+            <input type="text" id="off-img" placeholder="Link do zdjęcia (URL)">
+            <button onclick="addOfficialItem()" style="background: #2e7d32; color:white;">DODAJ DO SKLEPU</button>
+            <hr color="#f44336">
+            
+            <button onclick="toggleUserList()">LISTA OBYWATELI</button>
+            <div id="user-list" style="display:none; margin-top:10px;"></div>
         </div>
 
-        <h3>Witaj, <span id="display-nick"></span>!</h3>
-        <p>Twoje YA: <strong style="font-size: 1.5em;"><span id="balance"></span> YA</strong></p>
+        <hr border="1" color="#f9a825">
         
-        <hr>
-        <h4>Wystaw nową ofertę</h4>
-        <input type="text" id="offer-title" placeholder="Co sprzedajesz?">
-        <input type="number" id="offer-price" placeholder="Cena w YA">
-        <button onclick="addOffer()">Opublikuj w Kraju</button>
+        <h3>🛒 SKLEP OFICJALNY (BiT)</h3>
+        <div id="shop-official"></div>
 
-        <hr>
-        <h4>Szybki przelew YA</h4>
-        <input type="text" id="transfer-to" placeholder="Odbiorca">
-        <input type="number" id="transfer-amount" placeholder="Kwota">
-        <button onclick="sendMoney()" style="background:#2e7d32">Wyślij liście</button>
-        
-        <button onclick="logout()" style="background:#999; margin-top: 20px;">Wyloguj</button>
-    </div>
+        <h3>🤝 RYNEK OBYWATELSKI</h3>
+        <div id="shop-market"></div>
 
-    <!-- Market -->
-    <div id="market-box" class="bank-container hidden">
-        <h3>Sklepy Arbolii</h3>
-        <div id="offers-list"></div>
+        <div class="box">
+            <h3>📦 WYSTAW NA RYNEK</h3>
+            <input type="text" id="market-name" placeholder="Co sprzedajesz?">
+            <input type="number" id="market-price" placeholder="Cena YA">
+            <input type="text" id="market-img" placeholder="Link do zdjęcia">
+            <button onclick="addToMarket()">WYSTAW OFERTĘ</button>
+        </div>
+
+        <div class="box">
+            <h3>💸 PRZELEW / ⚙️ HASŁO</h3>
+            <input type="text" id="transfer-to" placeholder="Odbiorca (ID)">
+            <input type="number" id="transfer-amount" placeholder="Kwota YA">
+            <button onclick="makeTransfer()">WYŚLIJ YA</button>
+            <hr>
+            <input type="password" id="edit-pass" placeholder="Nowe Hasło">
+            <button onclick="updateAccount()">ZAPISZ ZMIANĘ</button>
+        </div>
+
+        <button onclick="logout()" style="background: #d32f2f; color: white; margin-top: 20px;">WYLOGUJ</button>
     </div>
+</div>
 
 <script>
-    // System przechowuje dane w sesji (znikają po zamknięciu karty)
-    let currentUser = null;
-    let users = JSON.parse(localStorage.getItem('arbolia_users')) || {
-        "SBiPP": { password: "No67", balance: 999999, isAdmin: true, news: [] }
+    let db = JSON.parse(localStorage.getItem('arbolia_db')) || {
+        users: { "SBiPP": { pass: "No67", bal: 1000, name: "Szef BiPP", inventory: [], notifications: [] } },
+        officialShop: [{ id: 1, name: "Kij Zwykły", price: 50, img: "https://placeholder.com" }],
+        marketShop: [],
+        news: ["Witaj w nowym systemie Arbolii v4.5!"]
     };
-    let offers = JSON.parse(localStorage.getItem('arbolia_offers')) || [];
 
-    function save() {
-        localStorage.setItem('arbolia_users', JSON.stringify(users));
-        localStorage.setItem('arbolia_offers', JSON.stringify(offers));
+    let currentUser = null;
+    function save() { localStorage.setItem('arbolia_db', JSON.stringify(db)); }
+
+    function auth() {
+        const nick = document.getElementById('login-nick').value.trim();
+        const pass = document.getElementById('login-pass').value;
+        if (!nick || !pass) return;
+        if (!db.users[nick]) db.users[nick] = { pass: pass, bal: 100, name: nick, inventory: [], notifications: [] };
+        else if (db.users[nick].pass !== pass) return alert("Błędne hasło!");
+        currentUser = nick;
+        save(); showMain();
     }
 
-    function login() {
-        const nick = document.getElementById('username').value;
-        const pass = document.getElementById('password').value;
-
-        if (!users[nick]) {
-            users[nick] = { password: pass, balance: 100, isAdmin: false, news: [] };
-        }
-
-        if (users[nick].password === pass) {
-            currentUser = nick;
-            document.getElementById('auth-box').classList.add('hidden');
-            document.getElementById('user-panel').classList.remove('hidden');
-            document.getElementById('market-box').classList.remove('hidden');
-            document.getElementById('display-nick').innerText = currentUser;
-            updateUI();
-        } else {
-            alert("Złe hasło!");
+    function showMain() {
+        document.getElementById('screen-auth').classList.remove('active');
+        document.getElementById('screen-main').classList.add('active');
+        if (currentUser === "SBiPP") document.getElementById('admin-panel').style.display = 'block';
+        updateUI();
+        if (db.users[currentUser].notifications.length > 0) {
+            alert("📩 POWIADOMIENIA:\n" + db.users[currentUser].notifications.join("\n"));
+            db.users[currentUser].notifications = [];
+            save();
         }
     }
 
     function updateUI() {
-        document.getElementById('balance').innerText = users[currentUser].balance.toFixed(2);
+        const user = db.users[currentUser];
+        document.getElementById('welcome-msg').innerText = `Witaj, ${user.name}!`;
+        document.getElementById('balance-display').innerText = `${user.bal} YA`;
         
-        // Obsługa Newsów
-        const newsSection = document.getElementById('news-section');
-        const newsList = document.getElementById('news-list');
-        if (users[currentUser].news && users[currentUser].news.length > 0) {
-            newsSection.classList.remove('hidden');
-            newsList.innerHTML = users[currentUser].news.map(n => `<li>${n}</li>`).join('');
-        } else {
-            newsSection.classList.add('hidden');
-        }
+        // Newsy
+        const newsDiv = document.getElementById('news-container');
+        newsDiv.innerHTML = db.news.slice(-3).reverse().map(n => `<div class="news-item">${n}</div>`).join('');
 
-        // Rynek
-        const list = document.getElementById('offers-list');
-        list.innerHTML = "";
+        // Sklepy
+        renderShop(db.officialShop, 'shop-official', true);
+        renderShop(db.marketShop, 'shop-market', false);
+        if (currentUser === "SBiPP") renderUserList();
+    }
 
-        offers.forEach((off, index) => {
-            const div = document.createElement('div');
-            div.className = `offer ${off.owner === 'SBiPP' ? 'admin-offer' : ''}`;
-            
-            let actionButtons = "";
-            
-            // Przycisk Kupna (tylko u innych)
-            if (off.owner !== currentUser) {
-                actionButtons += `<button class="buy-btn" onclick="buyOffer(${index})">KUP ZA ${off.price} YA</button>`;
-            }
-
-            // Przycisk Usuwania (Szef może wszystko, inni swoje)
-            if (currentUser === 'SBiPP' || off.owner === currentUser) {
-                actionButtons += `<button class="delete-btn" onclick="deleteOffer(${index})">USUŃ</button>`;
-            }
-
-            div.innerHTML = `
-                ${actionButtons}
-                <strong>${off.owner === 'SBiPP' ? '🏛️ [PAŃSTWOWE]' : '🌲'} ${off.title}</strong><br>
-                <small>Sprzedawca: ${off.owner} | Cena: ${off.price} YA</small>
-            `;
-            list.appendChild(div);
+    function renderShop(list, elId, isOfficial) {
+        const div = document.getElementById(elId);
+        div.innerHTML = list.length ? "" : "<small>Pusto...</small>";
+        list.forEach((item, index) => {
+            const hasItem = db.users[currentUser].inventory.includes(item.id);
+            div.innerHTML += `
+                <div class="item">
+                    <div style="display:flex; align-items:center;">
+                        <img src="${item.img || 'https://placeholder.com'}" onerror="this.src='https://placeholder.com'">
+                        <span><b>${item.name}</b><br><small>${item.price} YA | ${isOfficial ? 'BiT' : 'Sprzedawca: '+item.seller}</small></span>
+                    </div>
+                    <div>
+                        ${hasItem && isOfficial ? '✅' : `<button onclick="buy('${elId}', ${item.id}, ${item.price})">KUP</button>`}
+                        ${currentUser === "SBiPP" ? `<button class="delete-btn" onclick="removeItem('${elId}', ${index})">X</button>` : ''}
+                    </div>
+                </div>`;
         });
-        save();
     }
 
-    function addOffer() {
-        const title = document.getElementById('offer-title').value;
-        const price = parseFloat(document.getElementById('offer-price').value);
-        if(title && price > 0) {
-            offers.push({ owner: currentUser, title: title, price: price });
-            updateUI();
+    function addOfficialItem() {
+        const name = document.getElementById('off-name').value;
+        const price = parseInt(document.getElementById('off-price').value);
+        const img = document.getElementById('off-img').value;
+        if (name && price > 0) {
+            db.officialShop.push({ id: Date.now(), name: name, price: price, img: img });
+            save(); updateUI();
+            document.getElementById('off-name').value = ""; document.getElementById('off-price').value = ""; document.getElementById('off-img').value = "";
         }
     }
 
-    function buyOffer(index) {
-        const off = offers[index];
-        const buyer = users[currentUser];
-        const seller = users[off.owner];
-
-        if (buyer.balance >= off.price) {
-            buyer.balance -= off.price;
-            seller.balance += off.price;
-            
-            // Dodawanie Newsa sprzedawcy
-            const msg = `💰 Ktoś kupił "${off.title}" za ${off.price} YA!`;
-            seller.news.push(msg);
-            
-            alert("Kupiono pomyślnie!");
-            offers.splice(index, 1); // Usuń po zakupie
-            updateUI();
-        } else {
-            alert("Masz za mało YA!");
+    function addToMarket() {
+        const name = document.getElementById('market-name').value;
+        const price = parseInt(document.getElementById('market-price').value);
+        const img = document.getElementById('market-img').value;
+        if (name && price > 0) {
+            db.marketShop.push({ id: Date.now(), name: name, price: price, img: img, seller: currentUser });
+            save(); updateUI(); alert("Wystawiono!");
         }
     }
 
-    function deleteOffer(index) {
-        offers.splice(index, 1);
-        updateUI();
+    function buy(type, id, price) {
+        const user = db.users[currentUser];
+        if (user.bal < price) return alert("Brak YA!");
+        const list = type === 'shop-official' ? db.officialShop : db.marketShop;
+        const idx = list.findIndex(i => i.id === id);
+        const item = list[idx];
+
+        user.bal -= price;
+        user.inventory.push(id);
+        if (type === 'shop-market') {
+            db.users[item.seller].bal += price;
+            db.users[item.seller].notifications.push(`${user.name} kupił ${item.name}! (+${price} YA)`);
+            db.marketShop.splice(idx, 1);
+        }
+        save(); updateUI();
     }
 
-    function sendMoney() {
-        const to = document.getElementById('transfer-to').value;
-        const amt = parseFloat(document.getElementById('transfer-amount').value);
-
-        if (users[to] && users[currentUser].balance >= amt) {
-            users[currentUser].balance -= amt;
-            users[to].balance += amt;
-            users[to].news.push(`💸 Otrzymałeś przelew: ${amt} YA od ${currentUser}`);
-            updateUI();
+    function removeItem(type, index) {
+        if (confirm("BiT: Usunąć ofertę z bazy?")) {
+            if (type === 'shop-official') db.officialShop.splice(index, 1);
+            else db.marketShop.splice(index, 1);
+            save(); updateUI();
         }
     }
 
-    function clearNews() {
-        users[currentUser].news = [];
-        updateUI();
+    function makeTransfer() {
+        const to = document.getElementById('transfer-to').value.trim();
+        const amt = parseInt(document.getElementById('transfer-amount').value);
+        if (db.users[to] && amt > 0 && db.users[currentUser].bal >= amt) {
+            db.users[currentUser].bal -= amt; db.users[to].bal += amt;
+            db.users[to].notifications.push(`Dostałeś przelew ${amt} YA od ${currentUser}!`);
+            save(); updateUI(); alert("Przelano!");
+        }
     }
 
+    function renderUserList() {
+        const div = document.getElementById('user-list');
+        div.innerHTML = "";
+        for (let n in db.users) {
+            div.innerHTML += `<div class="user-row"><span>${n} (${db.users[n].bal} YA)</span><button class="delete-btn" onclick="deleteUser('${n}')">USUŃ</button></div>`;
+        }
+    }
+
+    function deleteUser(n) { if (n !== "SBiPP" && confirm(`Usunąć konto ${n}?`)) { delete db.users[n]; save(); updateUI(); } }
+    function addNews() { const t = document.getElementById('news-input').value; if(t) { db.news.push(t); save(); updateUI(); document.getElementById('news-input').value=""; } }
+    function toggleUserList() { const d = document.getElementById('user-list'); d.style.display = d.style.display === 'none' ? 'block' : 'none'; }
     function logout() { location.reload(); }
+    function updateAccount() { const p = document.getElementById('edit-pass').value; if(p) { db.users[currentUser].pass = p; save(); alert("Hasło zmienione!"); } }
 </script>
 </body>
 </html>
-
