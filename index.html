@@ -87,7 +87,7 @@
 </div>
 
 <script>
-    // Inicjalizacja bazy danych
+    // --- BAZA DANYCH ---
     let db = JSON.parse(localStorage.getItem('arbolia_db')) || {
         users: { "SBiPP": { pass: "No67", bal: 1000, name: "Szef BiPP", region: "Stolica", inventory: [], notifications: [] } },
         officialShop: [{ id: 1, name: "Kij Zwykły", price: 50, img: "https://placeholder.com" }],
@@ -101,15 +101,12 @@
         const nick = document.getElementById('login-nick').value.trim();
         const pass = document.getElementById('login-pass').value;
         if (!nick || !pass) return;
-        
         if (!db.users[nick]) {
             db.users[nick] = { pass: pass, bal: 100, name: nick, region: "Stolica", inventory: [], notifications: [] };
-            alert("Obywatel zarejestrowany! Otrzymałeś 100 YA.");
+            alert("Obywatel zarejestrowany!");
         } else if (db.users[nick].pass !== pass) return alert("Złe hasło!");
-        
         currentUser = nick;
-        save(); 
-        showMain();
+        save(); showMain();
     }
 
     function showMain() {
@@ -117,7 +114,7 @@
         document.getElementById('screen-main').classList.add('active');
         if (currentUser === "SBiPP") document.getElementById('admin-panel').style.display = 'block';
         updateUI();
-        checkNotifications(); // Sprawdź powiadomienia po wejściu
+        checkNotifications();
     }
 
     function updateUI() {
@@ -125,7 +122,6 @@
         document.getElementById('welcome-msg').innerText = `Witaj, ${user.name}!`;
         document.getElementById('balance-display').innerText = `${user.bal} YA`;
         document.getElementById('user-status').innerText = `Region: ${user.region} | ID: ${currentUser}`;
-        
         renderShop(db.officialShop, 'shop-official', true);
         renderShop(db.marketShop, 'shop-market', false);
         if (currentUser === "SBiPP") renderUserList();
@@ -134,8 +130,7 @@
     function checkNotifications() {
         const user = db.users[currentUser];
         if (user.notifications && user.notifications.length > 0) {
-            const wiadomosci = user.notifications.join("\n");
-            alert("📩 POWIADOMIENIA BiPP:\n" + wiadomosci);
+            alert("📩 POWIADOMIENIA BiPP:\n" + user.notifications.join("\n"));
             user.notifications = [];
             save();
         }
@@ -143,7 +138,7 @@
 
     function renderShop(list, elementId, isOfficial) {
         const div = document.getElementById(elementId);
-        div.innerHTML = list.length ? "" : "<small>Pusto w magazynie...</small>";
+        div.innerHTML = list.length ? "" : "<small>Pusto...</small>";
         list.forEach(item => {
             const hasItem = db.users[currentUser].inventory && db.users[currentUser].inventory.includes(item.id);
             div.innerHTML += `
@@ -160,22 +155,15 @@
 
     function renderUserList() {
         const div = document.getElementById('user-list');
-        div.innerHTML = "<h4>Obywatele Arbolii:</h4>";
+        div.innerHTML = "<h4>Obywatele:</h4>";
         for (let nick in db.users) {
             if (nick === "SBiPP") continue;
-            div.innerHTML += `
-                <div class="user-row">
-                    <span>${nick} (${db.users[nick].bal} YA)</span>
-                    <button onclick="deleteUser('${nick}')" style="background:red; font-size:10px; padding:5px;">USUŃ</button>
-                </div>`;
+            div.innerHTML += `<div class="user-row"><span>${nick}</span><button onclick="deleteUser('${nick}')" style="background:red; font-size:10px;">USUŃ</button></div>`;
         }
     }
 
     function deleteUser(nick) {
-        if (confirm(`Czy na pewno usunąć obywatela ${nick}?`)) {
-            delete db.users[nick];
-            save(); updateUI();
-        }
+        if (confirm(`Usunąć ${nick}?`)) { delete db.users[nick]; save(); updateUI(); }
     }
 
     function toggleUserList() {
@@ -188,42 +176,29 @@
         const name = document.getElementById(`${prefix}-item-name`).value;
         const price = parseInt(document.getElementById(`${prefix}-item-price`).value);
         const img = document.getElementById(`${prefix}-item-img`).value;
-        if (!name || price <= 0) return alert("Błędne dane!");
-        
+        if (!name || price <= 0) return alert("Błąd!");
         const newItem = { id: Date.now(), name: name, price: price, img: img, seller: currentUser };
-        if (isOfficial) db.officialShop.push(newItem);
-        else db.marketShop.push(newItem);
-        save(); updateUI(); alert("Dodano!");
+        if (isOfficial) db.officialShop.push(newItem); else db.marketShop.push(newItem);
+        save(); updateUI();
     }
 
     function buyItem(type, id, price) {
         const kupujacy = db.users[currentUser];
         if (kupujacy.bal < price) return alert("Brak YA!");
-
         const list = type === 'shop-official' ? db.officialShop : db.marketShop;
         const index = list.findIndex(i => i.id === id);
         const item = list[index];
-
         kupujacy.bal -= price;
         if (!kupujacy.inventory) kupujacy.inventory = [];
         kupujacy.inventory.push(id);
-
         if (type === 'shop-market') {
             const sprzedawca = db.users[item.seller];
             sprzedawca.bal += price;
-            
-            // Powiadomienie dla sprzedawcy
             if (!sprzedawca.notifications) sprzedawca.notifications = [];
-            sprzedawca.notifications.push(`${kupujacy.name} kupił od Ciebie: ${item.name}! (+${price} YA)`);
-            
+            sprzedawca.notifications.push(`${kupujacy.name} kupił: ${item.name}! (+${price} YA)`);
             db.marketShop.splice(index, 1);
-            alert(`Zakupiono od ${item.seller}!`);
-        } else {
-            alert(`Zakupiono produkt państwowy!`);
         }
-
-        save(); 
-        updateUI();
+        save(); updateUI(); alert("Kupiono!");
     }
 
     function makeTransfer() {
@@ -231,11 +206,10 @@
         const amt = parseInt(document.getElementById('transfer-amount').value);
         if (db.users[to] && amt > 0 && db.users[currentUser].bal >= amt) {
             db.users[currentUser].bal -= amt; db.users[to].bal += amt;
-            // Powiadomienie o przelewie
             if(!db.users[to].notifications) db.users[to].notifications = [];
-            db.users[to].notifications.push(`Otrzymałeś przelew: ${amt} YA od ${db.users[currentUser].name}!`);
+            db.users[to].notifications.push(`Dostałeś ${amt} YA od ${db.users[currentUser].name}!`);
             save(); updateUI(); alert("Przelano!");
-        } else alert("Błąd przelewu!");
+        } else alert("Błąd!");
     }
 
     function updateAccount() {
