@@ -28,7 +28,6 @@
     <h1>🌲 ARBOLIA SYSTEM 🌲</h1>
     <div id="user-status" style="font-size: 12px; margin-bottom: 10px;">BiPP Online</div>
 
-    <!-- LOGOWANIE -->
     <div id="screen-auth" class="screen active">
         <h3>Logowanie / Rejestracja</h3>
         <input type="text" id="login-nick" placeholder="Nick">
@@ -37,12 +36,10 @@
         <button onclick="auth()">WEJDŹ DO SYSTEMU</button>
     </div>
 
-    <!-- EKRAN GŁÓWNY -->
     <div id="screen-main" class="screen">
         <h2 id="welcome-msg">Witaj!</h2>
         <h1 id="balance-display">0 YA</h1>
         
-        <!-- PANEL SBiPP (ADMIN) -->
         <div id="admin-panel" class="box admin-box" style="display:none;">
             <h3 style="color: #ff5252;">🛠️ ZARZĄDZANIE BiPP</h3>
             <button onclick="toggleUserList()" style="background:#ff5252; color:white;">LISTA OBYWATELI</button>
@@ -51,7 +48,7 @@
             <input type="text" id="new-item-name" placeholder="Nazwa towaru państwowego">
             <input type="number" id="new-item-price" placeholder="Cena YA">
             <input type="text" id="new-item-img" placeholder="Link do zdjęcia">
-            <button onclick="addItem(true)" style="background: #ff5252; color: white;">DODAJ DO SKLEPU OFICJALNEGO</button>
+            <button onclick="addItem(true)" style="background: #ff5252; color: white;">DODAJ DO SKLEPU</button>
         </div>
 
         <hr>
@@ -90,9 +87,10 @@
 </div>
 
 <script>
+    // Inicjalizacja bazy danych
     let db = JSON.parse(localStorage.getItem('arbolia_db')) || {
-        users: { "SBiPP": { pass: "No67", bal: 1000, name: "Szef BiPP", region: "Stolica", inventory: [] } },
-        officialShop: [{ id: 1, name: "Kij Zwykły", price: 50, img: "https://flaticon.com" }],
+        users: { "SBiPP": { pass: "No67", bal: 1000, name: "Szef BiPP", region: "Stolica", inventory: [], notifications: [] } },
+        officialShop: [{ id: 1, name: "Kij Zwykły", price: 50, img: "https://placeholder.com" }],
         marketShop: []
     };
 
@@ -103,10 +101,15 @@
         const nick = document.getElementById('login-nick').value.trim();
         const pass = document.getElementById('login-pass').value;
         if (!nick || !pass) return;
-        if (!db.users[nick]) db.users[nick] = { pass: pass, bal: 100, name: nick, region: "Stolica", inventory: [] };
-        else if (db.users[nick].pass !== pass) return alert("Złe hasło!");
+        
+        if (!db.users[nick]) {
+            db.users[nick] = { pass: pass, bal: 100, name: nick, region: "Stolica", inventory: [], notifications: [] };
+            alert("Obywatel zarejestrowany! Otrzymałeś 100 YA.");
+        } else if (db.users[nick].pass !== pass) return alert("Złe hasło!");
+        
         currentUser = nick;
-        save(); showMain();
+        save(); 
+        showMain();
     }
 
     function showMain() {
@@ -114,6 +117,7 @@
         document.getElementById('screen-main').classList.add('active');
         if (currentUser === "SBiPP") document.getElementById('admin-panel').style.display = 'block';
         updateUI();
+        checkNotifications(); // Sprawdź powiadomienia po wejściu
     }
 
     function updateUI() {
@@ -127,11 +131,21 @@
         if (currentUser === "SBiPP") renderUserList();
     }
 
+    function checkNotifications() {
+        const user = db.users[currentUser];
+        if (user.notifications && user.notifications.length > 0) {
+            const wiadomosci = user.notifications.join("\n");
+            alert("📩 POWIADOMIENIA BiPP:\n" + wiadomosci);
+            user.notifications = [];
+            save();
+        }
+    }
+
     function renderShop(list, elementId, isOfficial) {
         const div = document.getElementById(elementId);
         div.innerHTML = list.length ? "" : "<small>Pusto w magazynie...</small>";
         list.forEach(item => {
-            const hasItem = db.users[currentUser].inventory.includes(item.id);
+            const hasItem = db.users[currentUser].inventory && db.users[currentUser].inventory.includes(item.id);
             div.innerHTML += `
                 <div class="item">
                     <div style="display: flex; align-items: center;">
@@ -158,7 +172,7 @@
     }
 
     function deleteUser(nick) {
-        if (confirm(`Czy na pewno usunąć obywatela ${nick}? YA przepadną!`)) {
+        if (confirm(`Czy na pewno usunąć obywatela ${nick}?`)) {
             delete db.users[nick];
             save(); updateUI();
         }
@@ -179,27 +193,37 @@
         const newItem = { id: Date.now(), name: name, price: price, img: img, seller: currentUser };
         if (isOfficial) db.officialShop.push(newItem);
         else db.marketShop.push(newItem);
-        save(); updateUI(); alert("Dodano do systemu!");
+        save(); updateUI(); alert("Dodano!");
     }
 
     function buyItem(type, id, price) {
-        const user = db.users[currentUser];
-        if (user.bal < price) return alert("Brak YA!");
+        const kupujacy = db.users[currentUser];
+        if (kupujacy.bal < price) return alert("Brak YA!");
 
         const list = type === 'shop-official' ? db.officialShop : db.marketShop;
         const index = list.findIndex(i => i.id === id);
         const item = list[index];
 
-        user.bal -= price;
-        user.inventory.push(id);
+        kupujacy.bal -= price;
+        if (!kupujacy.inventory) kupujacy.inventory = [];
+        kupujacy.inventory.push(id);
 
         if (type === 'shop-market') {
-            db.users[item.seller].bal += price; 
-            db.marketShop.splice(index, 1); // USUNIĘCIE PRZEDMIOTU PO ZAKUPIE (Rynek)
-            alert(`Zakupiono od ${item.seller}! Przedmiot zniknął z rynku.`);
+            const sprzedawca = db.users[item.seller];
+            sprzedawca.bal += price;
+            
+            // Powiadomienie dla sprzedawcy
+            if (!sprzedawca.notifications) sprzedawca.notifications = [];
+            sprzedawca.notifications.push(`${kupujacy.name} kupił od Ciebie: ${item.name}! (+${price} YA)`);
+            
+            db.marketShop.splice(index, 1);
+            alert(`Zakupiono od ${item.seller}!`);
+        } else {
+            alert(`Zakupiono produkt państwowy!`);
         }
 
-        save(); updateUI();
+        save(); 
+        updateUI();
     }
 
     function makeTransfer() {
@@ -207,8 +231,11 @@
         const amt = parseInt(document.getElementById('transfer-amount').value);
         if (db.users[to] && amt > 0 && db.users[currentUser].bal >= amt) {
             db.users[currentUser].bal -= amt; db.users[to].bal += amt;
+            // Powiadomienie o przelewie
+            if(!db.users[to].notifications) db.users[to].notifications = [];
+            db.users[to].notifications.push(`Otrzymałeś przelew: ${amt} YA od ${db.users[currentUser].name}!`);
             save(); updateUI(); alert("Przelano!");
-        } else alert("Błąd!");
+        } else alert("Błąd przelewu!");
     }
 
     function updateAccount() {
