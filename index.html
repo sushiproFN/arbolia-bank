@@ -3,83 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SBiPP - Centralny System Arbolii</title>
+    <title>SBiPP - Arbolia Command Center</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #1b5e20; color: white; text-align: center; margin: 0; padding: 20px; }
-        .container { max-width: 550px; margin: auto; background: #2e7d32; padding: 20px; border-radius: 15px; border: 3px solid #f9a825; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        h1 { color: #f9a825; text-shadow: 2px 2px 4px #000; margin-bottom: 10px; }
+        .container { max-width: 600px; margin: auto; background: #2e7d32; padding: 20px; border-radius: 15px; border: 3px solid #f9a825; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        h1 { color: #f9a825; text-shadow: 2px 2px 4px #000; margin: 10px 0; }
         .screen { display: none; }
         .active { display: block; }
-        input, select { width: 85%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; font-size: 16px; text-align: center; }
-        button { background: #f9a825; color: #1b5e20; border: none; padding: 12px 25px; font-weight: bold; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 5px; transition: 0.3s; }
-        button:hover:not(:disabled) { background: #ffd54f; transform: scale(1.05); }
+        input, select, textarea { width: 85%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; font-size: 16px; }
+        button { background: #f9a825; color: #1b5e20; border: none; padding: 12px 25px; font-weight: bold; border-radius: 5px; cursor: pointer; margin: 5px; transition: 0.3s; }
+        button:hover { background: #ffd54f; transform: scale(1.05); }
+        .box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; margin-top: 20px; border: 1px solid rgba(249,168,37,0.3); }
         .item { background: #388e3c; padding: 10px; margin: 10px 0; border-radius: 8px; border-left: 5px solid #f9a825; display: flex; justify-content: space-between; align-items: center; text-align: left; }
-        .item img { width: 60px; height: 60px; border-radius: 5px; margin-right: 15px; object-fit: cover; border: 1px solid #f9a825; background: #fff; }
-        .box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; margin-top: 20px; }
-        .admin-box { border: 2px dashed #f44336; }
-        .kupione { color: #f9a825; font-weight: bold; font-size: 14px; border: 1px solid #f9a825; padding: 5px 10px; border-radius: 5px; }
-        .owner-tag { font-size: 10px; color: #a5d6a7; display: block; }
-        .user-row { background: #1b5e20; margin: 5px 0; padding: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .item img { width: 50px; height: 50px; border-radius: 5px; margin-right: 10px; object-fit: cover; background: white; }
+        .news-item { background: #fdfdfd; color: #1b1b1b; padding: 10px; margin: 10px 0; border-radius: 5px; text-align: left; border-left: 10px solid #f9a825; }
+        .admin-section { border: 2px dashed #f44336; padding: 10px; margin-top: 10px; }
+        .delete-btn { background: #f44336; color: white; padding: 5px 10px; font-size: 12px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>🌲 ARBOLIA SYSTEM 🌲</h1>
-    <div id="user-status" style="font-size: 12px; margin-bottom: 10px;">BiPP Online</div>
 
+    <!-- EKRAN LOGOWANIA -->
     <div id="screen-auth" class="screen active">
-        <h3>Logowanie / Rejestracja</h3>
-        <input type="text" id="login-nick" placeholder="Nick">
+        <h3>Autoryzacja Obywatela</h3>
+        <input type="text" id="login-nick" placeholder="Twoje ID">
         <input type="password" id="login-pass" placeholder="Hasło">
         <br>
         <button onclick="auth()">WEJDŹ DO SYSTEMU</button>
     </div>
 
+    <!-- EKRAN GŁÓWNY -->
     <div id="screen-main" class="screen">
         <h2 id="welcome-msg">Witaj!</h2>
         <h1 id="balance-display">0 YA</h1>
+
+        <!-- SEKCJA NEWSÓW -->
+        <div class="box" style="background: #1b5e20;">
+            <h3 style="color: #f9a825; margin: 0;">🗞️ GŁOS ARBOLII</h3>
+            <div id="news-container"></div>
+        </div>
         
-        <div id="admin-panel" class="box admin-box" style="display:none;">
-            <h3 style="color: #ff5252;">🛠️ ZARZĄDZANIE BiPP</h3>
-            <button onclick="toggleUserList()" style="background:#ff5252; color:white;">LISTA OBYWATELI</button>
+        <!-- PANEL ADMINA (SBiPP) -->
+        <div id="admin-panel" class="box admin-section" style="display:none;">
+            <h3 style="color: #f44336;">🛠️ ZARZĄDZANIE BiT / BiPP</h3>
+            <input type="text" id="news-input" placeholder="Treść nowego ogłoszenia...">
+            <button onclick="addNews()">OPUBLIKUJ NEWS</button>
+            <button onclick="toggleUserList()">LISTA OBYWATELI</button>
             <div id="user-list" style="display:none; margin-top:10px;"></div>
-            <hr>
-            <input type="text" id="new-item-name" placeholder="Nazwa towaru państwowego">
-            <input type="number" id="new-item-price" placeholder="Cena YA">
-            <input type="text" id="new-item-img" placeholder="Link do zdjęcia">
-            <button onclick="addItem(true)" style="background: #ff5252; color: white;">DODAJ DO SKLEPU</button>
         </div>
 
-        <hr>
+        <hr border="1" color="#f9a825">
+        
         <h3>🛒 SKLEP OFICJALNY</h3>
         <div id="shop-official"></div>
 
-        <hr>
-        <div class="box">
-            <h3>📦 WYSTAW OFERTĘ (RYNEK)</h3>
-            <input type="text" id="user-item-name" placeholder="Co sprzedajesz?">
-            <input type="number" id="user-item-price" placeholder="Cena YA">
-            <input type="text" id="user-item-img" placeholder="Link do zdjęcia">
-            <button onclick="addItem(false)">WYSTAW NA SPRZEDAŻ</button>
-        </div>
-
-        <h3>🤝 OFERTY INNYCH (JEDNORAZOWE)</h3>
+        <h3>🤝 RYNEK OBYWATELSKI</h3>
         <div id="shop-market"></div>
 
-        <hr>
         <div class="box">
-            <h3>💸 PRZELEW / ⚙️ EDYCJA</h3>
-            <input type="text" id="transfer-to" placeholder="Odbiorca">
+            <h3>📦 WYSTAW NA RYNEK</h3>
+            <input type="text" id="market-name" placeholder="Co sprzedajesz?">
+            <input type="number" id="market-price" placeholder="Cena YA">
+            <button onclick="addToMarket()">WYSTAW OFERTĘ</button>
+        </div>
+
+        <div class="box">
+            <h3>💸 PRZELEW / ⚙️ USTAWIENIA</h3>
+            <input type="text" id="transfer-to" placeholder="Odbiorca (Nick)">
             <input type="number" id="transfer-amount" placeholder="Kwota YA">
             <button onclick="makeTransfer()">WYŚLIJ YA</button>
             <hr>
-            <input type="text" id="edit-name" placeholder="Nowy Tytuł">
-            <input type="password" id="edit-pass" placeholder="Nowe Hasło">
-            <select id="edit-region">
-                <option value="Stolica">Stolica</option><option value="PG/N">PG/N</option><option value="PG/S">PG/S</option>
-            </select>
-            <button onclick="updateAccount()">ZAPISZ</button>
+            <input type="password" id="edit-pass" placeholder="Zmień Hasło">
+            <button onclick="updateAccount()">ZAPISZ HASŁO</button>
         </div>
 
         <button onclick="logout()" style="background: #d32f2f; color: white; margin-top: 20px;">WYLOGUJ</button>
@@ -87,11 +85,11 @@
 </div>
 
 <script>
-    // --- BAZA DANYCH ---
     let db = JSON.parse(localStorage.getItem('arbolia_db')) || {
-        users: { "SBiPP": { pass: "No67", bal: 1000, name: "Szef BiPP", region: "Stolica", inventory: [], notifications: [] } },
-        officialShop: [{ id: 1, name: "Kij Zwykły", price: 50, img: "https://placeholder.com" }],
-        marketShop: []
+        users: { "SBiPP": { pass: "No67", bal: 1000, name: "Szef BiPP", inventory: [], notifications: [] } },
+        officialShop: [{ id: 1, name: "Kij Zwykły", price: 50, img: "" }],
+        marketShop: [],
+        news: ["System operacyjny Arbolii został zaktualizowany do v4.0!"]
     };
 
     let currentUser = null;
@@ -101,10 +99,8 @@
         const nick = document.getElementById('login-nick').value.trim();
         const pass = document.getElementById('login-pass').value;
         if (!nick || !pass) return;
-        if (!db.users[nick]) {
-            db.users[nick] = { pass: pass, bal: 100, name: nick, region: "Stolica", inventory: [], notifications: [] };
-            alert("Obywatel zarejestrowany!");
-        } else if (db.users[nick].pass !== pass) return alert("Złe hasło!");
+        if (!db.users[nick]) db.users[nick] = { pass: pass, bal: 100, name: nick, inventory: [], notifications: [] };
+        else if (db.users[nick].pass !== pass) return alert("Złe hasło!");
         currentUser = nick;
         save(); showMain();
     }
@@ -114,91 +110,77 @@
         document.getElementById('screen-main').classList.add('active');
         if (currentUser === "SBiPP") document.getElementById('admin-panel').style.display = 'block';
         updateUI();
-        checkNotifications();
+        if (db.users[currentUser].notifications.length > 0) {
+            alert("📩 BiPP INFO:\n" + db.users[currentUser].notifications.join("\n"));
+            db.users[currentUser].notifications = [];
+            save();
+        }
     }
 
     function updateUI() {
         const user = db.users[currentUser];
         document.getElementById('welcome-msg').innerText = `Witaj, ${user.name}!`;
         document.getElementById('balance-display').innerText = `${user.bal} YA`;
-        document.getElementById('user-status').innerText = `Region: ${user.region} | ID: ${currentUser}`;
+        
+        // Newsy
+        const newsDiv = document.getElementById('news-container');
+        newsDiv.innerHTML = db.news.slice(-3).reverse().map(n => `<div class="news-item">${n}</div>`).join('');
+
+        // Sklepy
         renderShop(db.officialShop, 'shop-official', true);
         renderShop(db.marketShop, 'shop-market', false);
         if (currentUser === "SBiPP") renderUserList();
     }
 
-    function checkNotifications() {
-        const user = db.users[currentUser];
-        if (user.notifications && user.notifications.length > 0) {
-            alert("📩 POWIADOMIENIA BiPP:\n" + user.notifications.join("\n"));
-            user.notifications = [];
-            save();
-        }
-    }
-
-    function renderShop(list, elementId, isOfficial) {
-        const div = document.getElementById(elementId);
-        div.innerHTML = list.length ? "" : "<small>Pusto...</small>";
-        list.forEach(item => {
-            const hasItem = db.users[currentUser].inventory && db.users[currentUser].inventory.includes(item.id);
+    function renderShop(list, elId, isOfficial) {
+        const div = document.getElementById(elId);
+        div.innerHTML = list.length ? "" : "<small>Brak towaru.</small>";
+        list.forEach((item, index) => {
+            const hasItem = db.users[currentUser].inventory.includes(item.id);
             div.innerHTML += `
                 <div class="item">
-                    <div style="display: flex; align-items: center;">
-                        <img src="${item.img}" onerror="this.src='https://placeholder.com'">
-                        <span><b>${item.name}</b><br><small>${item.price} YA</small>
-                        <span class="owner-tag">${isOfficial ? 'PAŃSTWOWY' : 'SPRZEDAWCA: ' + item.seller}</span></span>
+                    <span><b>${item.name}</b><br><small>${item.price} YA | ${isOfficial ? 'Państwowy' : 'Od: '+item.seller}</small></span>
+                    <div>
+                        ${hasItem && isOfficial ? '✅' : `<button onclick="buy('${elId}', ${item.id}, ${item.price})">KUP</button>`}
+                        ${currentUser === "SBiPP" && !isOfficial ? `<button class="delete-btn" onclick="removeMarketItem(${index})">X</button>` : ''}
                     </div>
-                    ${hasItem && isOfficial ? '<span class="kupione">Kupione!</span>' : `<button onclick="buyItem('${elementId}', ${item.id}, ${item.price})">KUP</button>`}
                 </div>`;
         });
     }
 
-    function renderUserList() {
-        const div = document.getElementById('user-list');
-        div.innerHTML = "<h4>Obywatele:</h4>";
-        for (let nick in db.users) {
-            if (nick === "SBiPP") continue;
-            div.innerHTML += `<div class="user-row"><span>${nick}</span><button onclick="deleteUser('${nick}')" style="background:red; font-size:10px;">USUŃ</button></div>`;
+    function addNews() {
+        const txt = document.getElementById('news-input').value;
+        if (txt) { db.news.push(txt); save(); updateUI(); document.getElementById('news-input').value = ""; }
+    }
+
+    function removeMarketItem(index) {
+        if (confirm("BiT: Usunąć tę ofertę z rynku?")) { db.marketShop.splice(index, 1); save(); updateUI(); }
+    }
+
+    function addToMarket() {
+        const name = document.getElementById('market-name').value;
+        const price = parseInt(document.getElementById('market-price').value);
+        if (name && price > 0) {
+            db.marketShop.push({ id: Date.now(), name: name, price: price, seller: currentUser });
+            save(); updateUI(); alert("Wystawiono!");
         }
     }
 
-    function deleteUser(nick) {
-        if (confirm(`Usunąć ${nick}?`)) { delete db.users[nick]; save(); updateUI(); }
-    }
-
-    function toggleUserList() {
-        const div = document.getElementById('user-list');
-        div.style.display = div.style.display === 'none' ? 'block' : 'none';
-    }
-
-    function addItem(isOfficial) {
-        const prefix = isOfficial ? 'new' : 'user';
-        const name = document.getElementById(`${prefix}-item-name`).value;
-        const price = parseInt(document.getElementById(`${prefix}-item-price`).value);
-        const img = document.getElementById(`${prefix}-item-img`).value;
-        if (!name || price <= 0) return alert("Błąd!");
-        const newItem = { id: Date.now(), name: name, price: price, img: img, seller: currentUser };
-        if (isOfficial) db.officialShop.push(newItem); else db.marketShop.push(newItem);
-        save(); updateUI();
-    }
-
-    function buyItem(type, id, price) {
-        const kupujacy = db.users[currentUser];
-        if (kupujacy.bal < price) return alert("Brak YA!");
+    function buy(type, id, price) {
+        const user = db.users[currentUser];
+        if (user.bal < price) return alert("Brak YA!");
         const list = type === 'shop-official' ? db.officialShop : db.marketShop;
-        const index = list.findIndex(i => i.id === id);
-        const item = list[index];
-        kupujacy.bal -= price;
-        if (!kupujacy.inventory) kupujacy.inventory = [];
-        kupujacy.inventory.push(id);
+        const idx = list.findIndex(i => i.id === id);
+        const item = list[idx];
+
+        user.bal -= price;
+        user.inventory.push(id);
         if (type === 'shop-market') {
-            const sprzedawca = db.users[item.seller];
-            sprzedawca.bal += price;
-            if (!sprzedawca.notifications) sprzedawca.notifications = [];
-            sprzedawca.notifications.push(`${kupujacy.name} kupił: ${item.name}! (+${price} YA)`);
-            db.marketShop.splice(index, 1);
+            db.users[item.seller].bal += price;
+            db.users[item.seller].notifications.push(`${user.name} kupił ${item.name}! (+${price} YA)`);
+            db.marketShop.splice(idx, 1);
         }
-        save(); updateUI(); alert("Kupiono!");
+        save(); updateUI();
     }
 
     function makeTransfer() {
@@ -206,22 +188,24 @@
         const amt = parseInt(document.getElementById('transfer-amount').value);
         if (db.users[to] && amt > 0 && db.users[currentUser].bal >= amt) {
             db.users[currentUser].bal -= amt; db.users[to].bal += amt;
-            if(!db.users[to].notifications) db.users[to].notifications = [];
-            db.users[to].notifications.push(`Dostałeś ${amt} YA od ${db.users[currentUser].name}!`);
+            db.users[to].notifications.push(`Dostałeś ${amt} YA od ${currentUser}!`);
             save(); updateUI(); alert("Przelano!");
-        } else alert("Błąd!");
+        }
     }
 
-    function updateAccount() {
-        const u = db.users[currentUser];
-        const n = document.getElementById('edit-name').value;
-        const p = document.getElementById('edit-pass').value;
-        const r = document.getElementById('edit-region').value;
-        if (n) u.name = n; if (p) u.pass = p; u.region = r;
-        save(); updateUI(); alert("Zapisano!");
+    function renderUserList() {
+        const div = document.getElementById('user-list');
+        div.innerHTML = "";
+        for (let n in db.users) {
+            div.innerHTML += `<div class="user-row"><span>${n}</span><button class="delete-btn" onclick="deleteUser('${n}')">USUŃ</button></div>`;
+        }
     }
 
+    function deleteUser(n) { if (confirm(`Usunąć ${n}?`)) { delete db.users[n]; save(); updateUI(); } }
+    function toggleUserList() { const d = document.getElementById('user-list'); d.style.display = d.style.display === 'none' ? 'block' : 'none'; }
     function logout() { location.reload(); }
+    function updateAccount() { const p = document.getElementById('edit-pass').value; if(p) { db.users[currentUser].pass = p; save(); alert("Zmieniono!"); } }
 </script>
 </body>
 </html>
+
