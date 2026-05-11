@@ -5,63 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Arbolia Bank - System</title>
 <style>
-  body {
-    background: #2e7d32;
-    color: #fff;
-    font-family: Arial, sans-serif;
-    margin: 0; padding: 0;
-  }
-  .container {
-    max-width: 480px;
-    margin: 20px auto;
-    background: #388e3c;
-    padding: 20px;
-    border-radius: 10px;
-  }
-  input, button, textarea {
-    width: 100%;
-    padding: 10px;
-    margin: 6px 0;
-    border: none;
-    border-radius: 5px;
-    box-sizing: border-box;
-  }
-  button {
-    background: #f9a825;
-    color: #000;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  button.red {
-    background: #d32f2f;
-    color: #fff;
-  }
-  h2, h3 {
-    margin-top: 0;
-  }
-  .hidden {
-    display: none;
-  }
-  .section {
-    margin-bottom: 20px;
-  }
-  .news-item {
-    background: #2e7d32;
-    padding: 10px;
-    margin-bottom: 8px;
-    border-radius: 5px;
-  }
-  .market-item {
-    background: #2e7d32;
-    padding: 10px;
-    margin-bottom: 8px;
-    border-radius: 5px;
-  }
-  .market-item img {
-    max-width: 100%;
-    border-radius: 5px;
-    margin-top: 5px;
-  }
+  /* ... (tu wstaw swój CSS z poprzedniego przykładu) ... */
 </style>
 </head>
 <body>
@@ -77,104 +21,70 @@
   <h2 id="welcome"></h2>
   <p>Saldo: <span id="balance">0</span> YA</p>
 
-  <div class="section" id="transferSection">
-    <h3>💸 Przelew YA</h3>
-    <input type="text" id="transferTo" placeholder="Odbiorca (nick)" />
-    <input type="number" id="transferAmount" placeholder="Kwota YA" min="1" />
-    <button onclick="makeTransfer()">Wyślij YA</button>
-  </div>
-
-  <div class="section" id="newsSection">
-    <h3>📰 Aktualności</h3>
-    <div id="newsList"></div>
-  </div>
-
-  <div class="section" id="marketSection">
-    <h3>🛒 Rynek obywatelski</h3>
-    <input type="text" id="marketItemName" placeholder="Co sprzedajesz?" />
-    <input type="number" id="marketItemPrice" placeholder="Cena YA" min="1" />
-    <input type="text" id="marketItemImage" placeholder="Link do zdjęcia" />
-    <button onclick="addMarketItem()">Wystaw ofertę</button>
-    <div id="marketList"></div>
-  </div>
-
-  <div class="section hidden" id="adminSection">
-    <h3>🔧 Panel zarządzania SBiPP</h3>
-    <input type="number" id="printAmount" placeholder="Ilość YA do dodrukowania" />
-    <button onclick="printMoney()">Dodrukuj pieniądze</button>
-
-    <h4>Dodaj newsa</h4>
-    <textarea id="newsContent" placeholder="Treść newsa..."></textarea>
-    <button onclick="addNews()">Dodaj news</button>
-
-    <h4>Dodaj towar państwowy</h4>
-    <input type="text" id="stateItemName" placeholder="Nazwa" />
-    <input type="number" id="stateItemPrice" placeholder="Cena YA" min="1" />
-    <input type="text" id="stateItemImage" placeholder="Link do zdjęcia (URL)" />
-    <button onclick="addStateItem()">Dodaj do sklepu</button>
-  </div>
+  <!-- reszta UI jak w poprzednim przykładzie -->
 
   <button class="red" onclick="logout()">Wyloguj</button>
 </div>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<script type="module">
+  // Importy Firebase (modułowe)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+  import { getDatabase, ref, get, set, onValue, update, push } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
-<script>
-  // Konfiguracja Firebase - wstaw tutaj swoje dane z Firebase Console
+  // Twoja konfiguracja Firebase
   const firebaseConfig = {
-    apiKey: "TU_WSTAW_API_KEY",
-    authDomain: "TU_WSTAW_AUTH_DOMAIN",
-    databaseURL: "TU_WSTAW_DATABASE_URL",
-    projectId: "TU_WSTAW_PROJECT_ID",
-    storageBucket: "TU_WSTAW_STORAGE_BUCKET",
-    messagingSenderId: "TU_WSTAW_MESSAGING_SENDER_ID",
-    appId: "TU_WSTAW_APP_ID"
+    apiKey: "AIzaSyB0YXkqLpkyBL_EkJbxu0pdqfdsSIgQsdc",
+    authDomain: "arbolia-bank-f4b62.firebaseapp.com",
+    databaseURL: "https://arbolia-bank-f4b62-default-rtdb.firebaseio.com",
+    projectId: "arbolia-bank-f4b62",
+    storageBucket: "arbolia-bank-f4b62.firebasestorage.app",
+    messagingSenderId: "768709211371",
+    appId: "1:768709211371:web:d0fbe3bb9a732d9be0baae",
+    measurementId: "G-3JGC3RYJE4"
   };
 
   // Inicjalizacja Firebase
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
   let currentUser = null;
   let userData = null;
 
-  // Logowanie z hasłem
-  function login() {
+  // Funkcje analogiczne do poprzednich, ale z użyciem modułowego API Firebase:
+
+  async function login() {
     const userId = document.getElementById('userId').value.trim();
     const password = document.getElementById('password').value;
     if(!userId || !password) {
       alert('Podaj nick i hasło');
       return;
     }
-    // Sprawdzamy w bazie czy użytkownik istnieje i hasło się zgadza
-    db.ref('users/' + userId).once('value').then(snapshot => {
-      if(!snapshot.exists()) {
-        alert('Nie ma takiego użytkownika');
-        return;
-      }
-      const data = snapshot.val();
-      if(data.password !== password) {
-        alert('Nieprawidłowe hasło');
-        return;
-      }
-      currentUser = userId;
-      document.getElementById('loginDiv').classList.add('hidden');
-      document.getElementById('mainDiv').classList.remove('hidden');
-      document.getElementById('welcome').textContent = `Witaj, ${currentUser}!`;
-      listenUserData();
-      listenNews();
-      listenMarket();
-      if(currentUser === 'SBiPP') {
-        document.getElementById('adminSection').classList.remove('hidden');
-      }
-    });
+    const userRef = ref(db, 'users/' + userId);
+    const snapshot = await get(userRef);
+    if(!snapshot.exists()) {
+      alert('Nie ma takiego użytkownika');
+      return;
+    }
+    const data = snapshot.val();
+    if(data.password !== password) {
+      alert('Nieprawidłowe hasło');
+      return;
+    }
+    currentUser = userId;
+    document.getElementById('loginDiv').classList.add('hidden');
+    document.getElementById('mainDiv').classList.remove('hidden');
+    document.getElementById('welcome').textContent = `Witaj, ${currentUser}!`;
+    listenUserData();
+    listenNews();
+    listenMarket();
+    if(currentUser === 'SBiPP') {
+      document.getElementById('adminSection').classList.remove('hidden');
+    }
   }
 
-  // Słuchamy zmiany danych użytkownika
   function listenUserData() {
-    db.ref('users/' + currentUser).on('value', snapshot => {
+    const userRef = ref(db, 'users/' + currentUser);
+    onValue(userRef, (snapshot) => {
       userData = snapshot.val();
       if(userData && userData.balance !== undefined) {
         document.getElementById('balance').textContent = userData.balance;
@@ -182,8 +92,7 @@
     });
   }
 
-  // Przelew YA
-  function makeTransfer() {
+  async function makeTransfer() {
     const to = document.getElementById('transferTo').value.trim();
     const amount = parseInt(document.getElementById('transferAmount').value);
     if(!to || isNaN(amount) || amount <= 0) {
@@ -198,25 +107,22 @@
       alert('Brak wystarczającego salda');
       return;
     }
-
-    db.ref('users/' + to).once('value').then(snapshot => {
-      if(!snapshot.exists()) {
-        alert('Odbiorca nie istnieje');
-        return;
-      }
-      const updates = {};
-      updates['users/' + currentUser + '/balance'] = userData.balance - amount;
-      updates['users/' + to + '/balance'] = snapshot.val().balance + amount;
-      db.ref().update(updates).then(() => {
-        alert(`Przelew ${amount} YA do ${to} wykonany`);
-        document.getElementById('transferTo').value = '';
-        document.getElementById('transferAmount').value = '';
-      });
-    });
+    const toRef = ref(db, 'users/' + to);
+    const toSnap = await get(toRef);
+    if(!toSnap.exists()) {
+      alert('Odbiorca nie istnieje');
+      return;
+    }
+    const updates = {};
+    updates['users/' + currentUser + '/balance'] = userData.balance - amount;
+    updates['users/' + to + '/balance'] = toSnap.val().balance + amount;
+    await update(ref(db), updates);
+    alert(`Przelew ${amount} YA do ${to} wykonany`);
+    document.getElementById('transferTo').value = '';
+    document.getElementById('transferAmount').value = '';
   }
 
-  // Dodrukowanie pieniędzy (tylko SBiPP)
-  function printMoney() {
+  async function printMoney() {
     if(currentUser !== 'SBiPP') {
       alert('Brak uprawnień');
       return;
@@ -227,16 +133,15 @@
       return;
     }
     const newBalance = (userData.balance || 0) + amount;
-    db.ref('users/' + currentUser + '/balance').set(newBalance).then(() => {
-      alert(`Dodrukowano ${amount} YA`);
-      document.getElementById('printAmount').value = '';
-    });
+    await set(ref(db, 'users/' + currentUser + '/balance'), newBalance);
+    alert(`Dodrukowano ${amount} YA`);
+    document.getElementById('printAmount').value = '';
   }
 
-  // Aktualności - słuchamy i wyświetlamy
   function listenNews() {
     const newsList = document.getElementById('newsList');
-    db.ref('news').on('value', snapshot => {
+    const newsRef = ref(db, 'news');
+    onValue(newsRef, (snapshot) => {
       newsList.innerHTML = '';
       const news = snapshot.val();
       if(news) {
@@ -250,8 +155,7 @@
     });
   }
 
-  // Dodaj newsa (tylko SBiPP)
-  function addNews() {
+  async function addNews() {
     if(currentUser !== 'SBiPP') {
       alert('Brak uprawnień');
       return;
@@ -261,19 +165,18 @@
       alert('Podaj treść newsa');
       return;
     }
-    const newKey = db.ref('news').push().key;
+    const newKey = push(ref(db, 'news')).key;
     const updates = {};
     updates['news/' + newKey] = { text };
-    db.ref().update(updates).then(() => {
-      alert('News dodany');
-      document.getElementById('newsContent').value = '';
-    });
+    await update(ref(db), updates);
+    alert('News dodany');
+    document.getElementById('newsContent').value = '';
   }
 
-  // Rynek obywatelski - słuchamy i wyświetlamy
   function listenMarket() {
     const marketList = document.getElementById('marketList');
-    db.ref('market').on('value', snapshot => {
+    const marketRef = ref(db, 'market');
+    onValue(marketRef, (snapshot) => {
       marketList.innerHTML = '';
       const items = snapshot.val();
       if(items) {
@@ -287,8 +190,7 @@
     });
   }
 
-  // Dodaj ofertę na rynek
-  function addMarketItem() {
+  async function addMarketItem() {
     const name = document.getElementById('marketItemName').value.trim();
     const price = parseInt(document.getElementById('marketItemPrice').value);
     const image = document.getElementById('marketItemImage').value.trim();
@@ -296,19 +198,17 @@
       alert('Podaj poprawne dane oferty');
       return;
     }
-    const newKey = db.ref('market').push().key;
+    const newKey = push(ref(db, 'market')).key;
     const updates = {};
     updates['market/' + newKey] = { name, price, image };
-    db.ref().update(updates).then(() => {
-      alert('Oferta dodana');
-      document.getElementById('marketItemName').value = '';
-      document.getElementById('marketItemPrice').value = '';
-      document.getElementById('marketItemImage').value = '';
-    });
+    await update(ref(db), updates);
+    alert('Oferta dodana');
+    document.getElementById('marketItemName').value = '';
+    document.getElementById('marketItemPrice').value = '';
+    document.getElementById('marketItemImage').value = '';
   }
 
-  // Dodaj towar państwowy (tylko SBiPP)
-  function addStateItem() {
+  async function addStateItem() {
     if(currentUser !== 'SBiPP') {
       alert('Brak uprawnień');
       return;
@@ -320,18 +220,16 @@
       alert('Podaj poprawne dane towaru');
       return;
     }
-    const newKey = db.ref('stateItems').push().key;
+    const newKey = push(ref(db, 'stateItems')).key;
     const updates = {};
     updates['stateItems/' + newKey] = { name, price, image };
-    db.ref().update(updates).then(() => {
-      alert('Towar państwowy dodany');
-      document.getElementById('stateItemName').value = '';
-      document.getElementById('stateItemPrice').value = '';
-      document.getElementById('stateItemImage').value = '';
-    });
+    await update(ref(db), updates);
+    alert('Towar państwowy dodany');
+    document.getElementById('stateItemName').value = '';
+    document.getElementById('stateItemPrice').value = '';
+    document.getElementById('stateItemImage').value = '';
   }
 
-  // Wyloguj
   function logout() {
     currentUser = null;
     userData = null;
